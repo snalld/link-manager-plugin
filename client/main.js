@@ -510,19 +510,19 @@ const actions = {
   
   };
 
+const merge$1 = require('merge-deep');
+
 const state = {
   list: [],
   tree: [],
   activeTreeItem: {},
 };
 
-const Row = (attrs, children) => [ 'div', { class: 'flex items-center h-10' }, children ];
+const Row = (attrs, children) => [ 'div', merge$1({ class: 'flex items-center h-10' }, attrs), children ];
 
 
 function isAChildOfB(itemB, itemA) {
-  return itemB.type === 'file' && itemA.type === 'file' ?
-    itemB.link.id === itemA.link.id :
-    (itemA.parent + itemA.name).indexOf(itemB.parent + itemB.name) === 0
+  return !(itemB.type === 'file' && itemA.type === 'file') && (itemA.parent + itemA.name).length > (itemB.parent + itemB.name).length && (itemA.parent + itemA.name).indexOf(itemB.parent + itemB.name) === 0
 }
 
 function isSameItem(itemB, itemA) {
@@ -540,7 +540,7 @@ const Tree = ({ tree, activeItem }, actions$$1) =>
       ['div', {
         class: cc({
           'whitespace-no-wrap': true,
-          'bg-grey-darker': isAChildOfB(activeItem, item),
+          'bg-grey-darker': isAChildOfB(activeItem, item) || isSameItem(activeItem, item),
         }),
         }, [
           Row({

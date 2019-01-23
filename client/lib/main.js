@@ -2,7 +2,7 @@ import { app } from "hyperapp"
 import { h } from "ijk"
 import cc from 'classcat'
 
-import { runScript } from './helpers/jsx.js'
+const merge = require('merge-deep')
 
 const state = {
   list: [],
@@ -12,7 +12,7 @@ const state = {
 
 import { actions } from './actions.js'
 
-const Row = (attrs, children) => [ 'div', { class: 'flex items-center h-10' }, children ]
+const Row = (attrs, children) => [ 'div', merge({ class: 'flex items-center h-10' }, attrs), children ]
 
 const List = (list) => 
   ['div', {
@@ -30,9 +30,7 @@ const List = (list) =>
 
 
 function isAChildOfB(itemB, itemA) {
-  return itemB.type === 'file' && itemA.type === 'file' ?
-    itemB.link.id === itemA.link.id :
-    (itemA.parent + itemA.name).indexOf(itemB.parent + itemB.name) === 0
+  return !(itemB.type === 'file' && itemA.type === 'file') && (itemA.parent + itemA.name).length > (itemB.parent + itemB.name).length && (itemA.parent + itemA.name).indexOf(itemB.parent + itemB.name) === 0
 }
 
 function isSameItem(itemB, itemA) {
@@ -50,7 +48,7 @@ const Tree = ({ tree, activeItem }, actions) =>
       ['div', {
         class: cc({
           'whitespace-no-wrap': true,
-          'bg-grey-darker': isAChildOfB(activeItem, item),
+          'bg-grey-darker': isAChildOfB(activeItem, item) || isSameItem(activeItem, item),
         }),
         }, [
           Row({
