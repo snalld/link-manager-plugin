@@ -1,0 +1,10 @@
+{
+  "name": "indesign-link-manager",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Daniel Sutton",
+  "license": "MIT",
+  "dependencies": {
+    "fs-extra": "^6.0.1"
+  }
+}

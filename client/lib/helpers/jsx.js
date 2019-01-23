@@ -1,0 +1,2 @@
+export const runScriptSync = (csInterface, name, argumentList, onDone) => csInterface.evalScript(`run('${name}', ${JSON.stringify(argumentList)})`, onDone);
+export const runScript = async (csInterface, name, argumentList) => new Promise((resolve, reject) => runScriptSync(csInterface, name, argumentList, resolve));

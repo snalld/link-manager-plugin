@@ -1,0 +1,91 @@
+
+/*===================================
+=            Input Basic            =
+===================================*/
+
+.input {
+    @apply .w-full .h-8 .text-white .bg-grey-darker .border .border-grey .font-normal .rounded .overflow-hidden;
+    padding: 3px 4px 2px 4px;
+}
+
+.input:focus {
+    @apply .border .border-blue .bg-white .text-grey-darker .font-normal;
+    outline: none;
+}
+
+.input-checkbox {
+    @apply .input .w-auto .h-auto .inline-block .relative .p-0 .border-grey-light .cursor-pointer;
+    transition: 0.1s border;
+    line-height: 0px;
+}
+
+/*=====  End of Input Basic  ======*/
+
+
+/*=======================================
+=            Checkbox Module            =
+=======================================*/
+
+.input-checkbox:before {
+    @apply .block;
+    content: "";
+    width: 12px;
+    height: 12px;
+}
+
+.input-checkbox:after {
+    @apply .block .absolute .w-full .h-full .pin-t .opacity-0 .text-center;
+    content: "✔";
+    transform: translateY(50%);
+}
+
+.input-checkbox:hover {
+    @apply .border-grey-lightest;
+}
+
+.input-checkbox-active {
+    @apply .text-black .bg-grey-light;
+}
+
+.input-checkbox-active:after {
+    @apply .opacity-100;
+}
+
+/*=====  End of Checkbox Module  ======*/
+
+
+/*=====================================
+=            Button Module            =
+=====================================*/
+
+.button {
+    transition: 0.1s background-color;
+    @apply .relative .text-black .rounded;
+    padding: 1px;
+    font-weight: 400;
+    width: 24px;
+    height: 24px;
+}
+
+.button svg {
+    width: 22px;
+    height: 22px;
+    fill: config("colors.grey-light") !important;
+}
+
+.cls-1 {
+    fill: inherit !important;
+}
+
+.button:hover {
+    @apply bg-grey-darkest;
+}
+
+.button:active,
+.button:focus {
+    outline: none;
+}
+
+
+/*=====  End of Button Module  ======*/
+

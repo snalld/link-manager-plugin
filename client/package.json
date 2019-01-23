@@ -1,0 +1,49 @@
+{
+  "name": "indesign-tools-panel",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Daniel Sutton",
+  "license": "MIT",
+  "config": {
+    "entries": {
+      "css": [
+        "css/main.css"
+      ],
+      "sprites": [
+        "sprites/*.svg"
+      ],
+      "js": [
+        "lib/main.js"
+      ]
+    }
+  },
+  "scripts": {
+    "css": "jq -c '.config.entries.css[]' package.json | xargs -I glob -L 1 postcss glob --dir ./ --config postcss.config.js",
+    "sprites": "jq -c '.config.entries.sprites[]' package.json | xargs -I glob -L 1 svg-sprite --C svg-sprite.config.json glob",
+    "js": "jq -c '.config.entries.js[]' package.json | xargs -I {} -L 1 bash -c 'rollup {} -o ./$(basename {}) -c'",
+    "grammar": "nearleyc grammar.ne -o lib/grammar.js",
+    "watch-js": "jq -c '.config.entries.js[]' package.json | xargs -I {} -L 1 bash -c 'rollup {} -o ./$(basename {}) -c -w'",
+    "watch-css": "npm run css -- --watch",
+    "dev": "concurrently --kill-others-on-fail -p '{name}' -n 'CSS' -c 'bgMagenta.bold' 'npm run watch-css'"
+  },
+  "dependencies": {
+    "chokidar-cli": "^1.2.0",
+    "classcat": "^3.2.5",
+    "concurrently": "^3.5.1",
+    "foreach-cli": "^1.8.0",
+    "hyperapp": "^1.2.9",
+    "ijk": "^0.24.0",
+    "mathjs": "^5.0.0",
+    "merge-deep": "^3.0.2",
+    "nearley": "^2.15.1",
+    "postcss-cli": "^5.0.0",
+    "postcss-import": "^11.1.0",
+    "tailwindcss": "^0.5.3"
+  },
+  "devDependencies": {
+    "rollup-plugin-buble": "^0.19.4",
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-nodent": "^0.2.2",
+    "svg-sprite": "^1.5.0"
+  }
+}

@@ -1,0 +1,17 @@
+@font-face {
+    font-family: 'FiraSans';
+    src: url('./fonts/Fira Sans/FiraSans-Regular.ttf')  format('truetype');
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: 'FiraSans';
+    src: url('./fonts/Fira Sans/FiraSans-Light.ttf')  format('truetype');
+    font-weight: 300;
+}
+
+@font-face {
+    font-family: 'FiraSans';
+    src: url('./fonts/Fira Sans/FiraSans-Thin.ttf')  format('truetype');
+    font-weight: 200;
+}

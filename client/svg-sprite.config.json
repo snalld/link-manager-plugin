@@ -1,0 +1,11 @@
+{
+    "dest": "./sprites",
+    "mode": {
+        "symbol": {
+        },
+        "css": true
+    },
+    "svg": {
+        "namespaceClassnames": false
+    }
+}
