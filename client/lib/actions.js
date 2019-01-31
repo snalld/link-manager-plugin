@@ -12,9 +12,12 @@ export const actions = {
       return merge(state, { tree })
     },
   
-    setActiveTreeItem: activeTreeItem => state => {
-      console.log(activeTreeItem)
-      return merge(state, { activeTreeItem })
+    setSelectedTreeItem: selectedTreeItem => state => {
+      return merge(state, { selectedTreeItem })
+    },
+  
+    setEditingTreeItem: editingTreeItem => state => {
+      return merge(state, { editingTreeItem })
     },
   
     updateLinks: _ => (state, actions) => {

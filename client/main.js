@@ -3717,9 +3717,12 @@ const actions = {
       return merge$1(state, { tree })
     },
   
-    setActiveTreeItem: activeTreeItem => state => {
-      console.log(activeTreeItem);
-      return merge$1(state, { activeTreeItem })
+    setSelectedTreeItem: selectedTreeItem => state => {
+      return merge$1(state, { selectedTreeItem })
+    },
+  
+    setEditingTreeItem: editingTreeItem => state => {
+      return merge$1(state, { editingTreeItem })
     },
   
     updateLinks: _ => (state, actions) => {
@@ -3794,7 +3797,8 @@ const path$1 = require('path');
 const state = {
   list: [],
   tree: [],
-  activeTreeItem: {},
+  selectedTreeItem: {},
+  editingTreeItem: {},
 };
 
 const mergeNodeAttributes = (defaults, attributes) => evolve({ class: cc }, mergeDeepRight(defaults, attributes));
@@ -3817,16 +3821,17 @@ function isSameItem(itemB, itemA) {
     itemB.parent + itemB.name === itemA.parent + itemA.name
 }
 
-const TreeItem = ({ item, isActive, isChildOfActive, setSelected }) => 
+const TreeItem = ({ item, isSelected, isChildOfSelected, setSelected, setEditing }) => 
   Row({
     class: {
       'whitespace-no-wrap': true,
-      'bg-grey-darker': isActive || isChildOfActive,
+      'bg-grey-darker': isSelected || isChildOfSelected,
     },
     onclick: () => {
       setSelected();
     },
     ondblclick: () => {
+      setEditing();
       // let filepath = item.link.path.split(':').join('/')
 
       // if (item.type === 'file') {
@@ -3853,7 +3858,7 @@ const TreeItem = ({ item, isActive, isChildOfActive, setSelected }) =>
     ['span', { 
         class: cc({
           'whitespace-no-wrap': true,
-          'font-bold': isActive,
+          'font-bold': isSelected,
         }),
       }, 
       item.name
@@ -3861,16 +3866,19 @@ const TreeItem = ({ item, isActive, isChildOfActive, setSelected }) =>
   ]);
 
   
-const Tree = ({ tree, activeItem }, actions$$1) =>
+const Tree = ({ tree, selectedItem }, actions$$1) =>
   ['div', {
       class: ''
     },
     tree.map((item, idx) => 
       TreeItem({ 
         item, 
-        isActive: isSameItem(activeItem, item), 
-        isChildOfActive: isAChildOfB(activeItem, item), 
-        setSelected: () => actions$$1.setActiveTreeItem(item) 
+        isSelected: isSameItem(selectedItem, item), 
+        isChildOfSelected: isAChildOfB(selectedItem, item), 
+        isEditing: isSameItem(selectedItem, item), 
+        isChildOfEditing: isAChildOfB(selectedItem, item), 
+        setSelected: () => actions$$1.setSelectedTreeItem(item),
+        setEditing: () => actions$$1.setEditingTreeItem(item),
       })
       )
   ];
@@ -3897,7 +3905,7 @@ const view$1 = (state, actions$$1) => h$1('nodeName', 'attributes', 'children')(
       ['div', { 
           class: 'flex-1 w-full p-1 max-h-full overflow-y-auto'
         }, [
-          Tree({ tree: state.tree, activeItem: state.activeTreeItem }, actions$$1),
+          Tree({ tree: state.tree, selectedItem: state.selectedTreeItem }, actions$$1),
       ]],
   ]]
 );

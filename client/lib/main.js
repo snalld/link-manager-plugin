@@ -12,7 +12,8 @@ const path = require('path')
 const state = {
   list: [],
   tree: [],
-  activeTreeItem: {},
+  selectedTreeItem: {},
+  editingTreeItem: {},
 }
 
 import { actions } from './actions.js'
@@ -51,16 +52,17 @@ function isSameItem(itemB, itemA) {
     itemB.parent + itemB.name === itemA.parent + itemA.name
 }
 
-const TreeItem = ({ item, isActive, isChildOfActive, setSelected }) => 
+const TreeItem = ({ item, isSelected, isChildOfSelected, setSelected, setEditing }) => 
   Row({
     class: {
       'whitespace-no-wrap': true,
-      'bg-grey-darker': isActive || isChildOfActive,
+      'bg-grey-darker': isSelected || isChildOfSelected,
     },
     onclick: () => {
       setSelected()
     },
     ondblclick: () => {
+      setEditing()
       // let filepath = item.link.path.split(':').join('/')
 
       // if (item.type === 'file') {
@@ -87,7 +89,7 @@ const TreeItem = ({ item, isActive, isChildOfActive, setSelected }) =>
     ['span', { 
         class: cc({
           'whitespace-no-wrap': true,
-          'font-bold': isActive,
+          'font-bold': isSelected,
         }),
       }, 
       item.name
@@ -95,16 +97,19 @@ const TreeItem = ({ item, isActive, isChildOfActive, setSelected }) =>
   ])
 
   
-const Tree = ({ tree, activeItem }, actions) =>
+const Tree = ({ tree, selectedItem }, actions) =>
   ['div', {
       class: ''
     },
     tree.map((item, idx) => 
       TreeItem({ 
         item, 
-        isActive: isSameItem(activeItem, item), 
-        isChildOfActive: isAChildOfB(activeItem, item), 
-        setSelected: () => actions.setActiveTreeItem(item) 
+        isSelected: isSameItem(selectedItem, item), 
+        isChildOfSelected: isAChildOfB(selectedItem, item), 
+        isEditing: isSameItem(selectedItem, item), 
+        isChildOfEditing: isAChildOfB(selectedItem, item), 
+        setSelected: () => actions.setSelectedTreeItem(item),
+        setEditing: () => actions.setEditingTreeItem(item),
       })
       )
   ]
@@ -131,7 +136,7 @@ const view = (state, actions) => h('nodeName', 'attributes', 'children')(
       ['div', { 
           class: 'flex-1 w-full p-1 max-h-full overflow-y-auto'
         }, [
-          Tree({ tree: state.tree, activeItem: state.activeTreeItem }, actions),
+          Tree({ tree: state.tree, selectedItem: state.selectedTreeItem }, actions),
       ]],
   ]]
 )
