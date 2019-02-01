@@ -2641,6 +2641,31 @@ var uniqBy = /*#__PURE__*/_curry2(function uniqBy(fn, list) {
  */
 var uniq = /*#__PURE__*/uniqBy(identity);
 
+// Based on https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
+function _objectAssign(target) {
+  if (target == null) {
+    throw new TypeError('Cannot convert undefined or null to object');
+  }
+
+  var output = Object(target);
+  var idx = 1;
+  var length = arguments.length;
+  while (idx < length) {
+    var source = arguments[idx];
+    if (source != null) {
+      for (var nextKey in source) {
+        if (_has(nextKey, source)) {
+          output[nextKey] = source[nextKey];
+        }
+      }
+    }
+    idx += 1;
+  }
+  return output;
+}
+
+var _objectAssign$1 = typeof Object.assign === 'function' ? Object.assign : _objectAssign;
+
 /**
  * Turns a named method with a specified arity into a function that can be
  * called directly supplied with arguments and a target object.
@@ -2738,6 +2763,27 @@ var juxt = /*#__PURE__*/_curry1(function juxt(fns) {
  *      R.sum([2,4,6,8,100,1]); //=> 121
  */
 var sum = /*#__PURE__*/reduce(add, 0);
+
+/**
+ * Merges a list of objects together into one object.
+ *
+ * @func
+ * @memberOf R
+ * @since v0.10.0
+ * @category List
+ * @sig [{k: v}] -> {k: v}
+ * @param {Array} list An array of objects
+ * @return {Object} A merged object.
+ * @see R.reduce
+ * @example
+ *
+ *      R.mergeAll([{foo:1},{bar:2},{baz:3}]); //=> {foo:1,bar:2,baz:3}
+ *      R.mergeAll([{foo:1},{foo:2},{bar:2}]); //=> {foo:2,bar:2}
+ * @symb R.mergeAll([{ x: 1 }, { y: 2 }, { z: 3 }]) = { x: 1, y: 2, z: 3 }
+ */
+var mergeAll = /*#__PURE__*/_curry1(function mergeAll(list) {
+  return _objectAssign$1.apply(null, [{}].concat(list));
+});
 
 /**
  * Creates a new object with the own properties of the two provided objects. If
@@ -3278,6 +3324,34 @@ var union = /*#__PURE__*/_curry2( /*#__PURE__*/compose(uniq, _concat));
  */
 var unnest = /*#__PURE__*/chain(_identity);
 
+/**
+ * Creates a new object out of a list of keys and a list of values.
+ * Key/value pairing is truncated to the length of the shorter of the two lists.
+ * Note: `zipObj` is equivalent to `pipe(zip, fromPairs)`.
+ *
+ * @func
+ * @memberOf R
+ * @since v0.3.0
+ * @category List
+ * @sig [String] -> [*] -> {String: *}
+ * @param {Array} keys The array that will be properties on the output object.
+ * @param {Array} values The list of values on the output object.
+ * @return {Object} The object made by pairing up same-indexed elements of `keys` and `values`.
+ * @example
+ *
+ *      R.zipObj(['a', 'b', 'c'], [1, 2, 3]); //=> {a: 1, b: 2, c: 3}
+ */
+var zipObj = /*#__PURE__*/_curry2(function zipObj(keys, values) {
+  var idx = 0;
+  var len = Math.min(keys.length, values.length);
+  var out = {};
+  while (idx < len) {
+    out[keys[idx]] = values[idx];
+    idx += 1;
+  }
+  return out;
+});
+
 function app(state, actions, view, container) {
   var map = [].map;
   var rootElement = (container && container.children[0]) || null;
@@ -3702,35 +3776,37 @@ function cc(names) {
   return out
 }
 
+const state = {
+  links: {},
+
+  tree: [],
+  selectedTreeItem: {},
+  editingTreeItem: {},
+
+  editingItemTreeValue: 'testing path',
+};
+
 const runScriptSync = (csInterface, name, argumentList, onDone) => csInterface.evalScript(`run('${name}', ${JSON.stringify(argumentList)})`, onDone);
 const runScript = async (csInterface, name, argumentList) => new Promise((resolve, reject) => runScriptSync(csInterface, name, argumentList, resolve));
 
-const merge$1 = (...args) => Object.assign({}, ...args);
-
 const actions = {
 
-    setList: list => state => {
-      return merge$1(state, { list })
-    },
+    setEditingItemValue: editingItemValue => state => mergeAll([state, { editingItemValue }]),
   
-    setTree: tree => state => {
-      return merge$1(state, { tree })
-    },
+    setLinks: links => state => mergeAll([state, { links: zipObj(map(l => l.id, links), links) }]),
   
-    setSelectedTreeItem: selectedTreeItem => state => {
-      return merge$1(state, { selectedTreeItem })
-    },
+    setTree: tree => state => mergeAll([state, { tree }]),
   
-    setEditingTreeItem: editingTreeItem => state => {
-      return merge$1(state, { editingTreeItem })
-    },
+    setSelectedTreeItem: selectedTreeItem => state => mergeAll([state, { selectedTreeItem }]),
   
-    updateLinks: _ => (state, actions) => {
+    setEditingTreeItem: editingTreeItem => state => mergeAll([state, { editingTreeItem }]),
+  
+    getLinks: _ => (state, actions) => {
       runScript(csInterface, 'getLinks.jsx')
         .then(res => {
           try {
             const links = JSON.parse(res).links;
-            actions.setList(links);
+            actions.setLinks(links);
             actions.updateTree(links);
           } catch (error) {
             console.log(res);
@@ -3759,9 +3835,9 @@ const actions = {
           };
 
           if (branch.type === 'file')
-            branch = merge$1(branch, { 
-              link 
-            });
+            branch = mergeAll([branch, { 
+              link: link.id
+            }]);
           
           tree = [...tree, branch];
     
@@ -3782,8 +3858,6 @@ const actions = {
           return - 1
   
       });
-
-      console.log(state);
       
   
       actions.setTree(tree);
@@ -3792,24 +3866,11 @@ const actions = {
   };
 
 const fs = require('fs');
+const { COPYFILE_EXCL } = fs.constants;
+
 const path$1 = require('path');
 
-const state = {
-  list: [],
-  tree: [],
-  selectedTreeItem: {},
-  editingTreeItem: {},
-};
-
 const mergeNodeAttributes = (defaults, attributes) => evolve({ class: cc }, mergeDeepRight(defaults, attributes));
-
-const Row = (attrs, children) => 
-  [ 'div', 
-    mergeNodeAttributes({
-      class: { 'flex items-center h-10': true }
-    }, attrs)
-  , children ];
-
 
 function isAChildOfB(itemB, itemA) {
   return !(itemB.type === 'file' && itemA.type === 'file') && (itemA.parent + itemA.name).length > (itemB.parent + itemB.name).length && (itemA.parent + itemA.name).indexOf(itemB.parent + itemB.name) === 0
@@ -3820,6 +3881,14 @@ function isSameItem(itemB, itemA) {
     itemB.link.id === itemA.link.id :
     itemB.parent + itemB.name === itemA.parent + itemA.name
 }
+
+const Row = (attrs, children) => 
+  [ 'div', 
+    mergeNodeAttributes({
+      class: { 'flex items-center h-10': true }
+    }, attrs)
+  , children ];
+
 
 const TreeItem = ({ item, isSelected, isChildOfSelected, setSelected, setEditing }) => 
   Row({
@@ -3855,35 +3924,65 @@ const TreeItem = ({ item, isSelected, isChildOfSelected, setSelected, setEditing
   }, [
     repeat("  ", item.indent)
       .map(el => ['span', { class: 'pr-8' }]),
-    ['span', { 
+    ['span', 
+      { 
         class: cc({
           'whitespace-no-wrap': true,
           'font-bold': isSelected,
         }),
       }, 
       item.name
-    ],
+    ]
   ]);
 
+const TreeItemInput = ({ item, isSelected, isChildOfSelected, isEditing, setEditing, setSelected, editingItemValue }) => 
+  Row({
+    class: {
+      'whitespace-no-wrap': true,
+      'bg-grey-darker': isSelected || isChildOfSelected,
+    },
+    onclick: () => {
+      setSelected();
+    },
+  }, [
+    console.log(editingItemValue),
+    ['input',
+      {
+        class: cc({
+          'text-black': true,
+        }),
+        value: editingItemValue,
+        oninput: e => actions.setNameInput(),
+      },
+      []
+    ]
+  ]);
   
-const Tree = ({ tree, selectedItem }, actions$$1) =>
+const Tree = ({ tree, selectedItem, editingItem, editingItemValue }, actions$$1) =>
   ['div', {
       class: ''
     },
     tree.map((item, idx) => 
-      TreeItem({ 
-        item, 
-        isSelected: isSameItem(selectedItem, item), 
-        isChildOfSelected: isAChildOfB(selectedItem, item), 
-        isEditing: isSameItem(selectedItem, item), 
-        isChildOfEditing: isAChildOfB(selectedItem, item), 
-        setSelected: () => actions$$1.setSelectedTreeItem(item),
-        setEditing: () => actions$$1.setEditingTreeItem(item),
-      })
+      (!isSameItem(editingItem, item))
+        ? TreeItem({ 
+          item, 
+          isSelected: isSameItem(selectedItem, item), 
+          isChildOfSelected: isAChildOfB(selectedItem, item), 
+          isEditing: isSameItem(editingItem, item), 
+          setSelected: () => actions$$1.setSelectedTreeItem(item),
+          setEditing: () => actions$$1.setEditingTreeItem(item),
+        })
+        : TreeItemInput({
+          item, 
+          editingItemValue,
+          isEditing: isSameItem(editingItem, item), 
+          setSelected: () => actions$$1.setSelectedTreeItem(item),
+          setEditing: () => actions$$1.setEditingTreeItem(item),
+        })
       )
   ];
 
-const view$1 = (state, actions$$1) => h$1('nodeName', 'attributes', 'children')(
+const view$1 = (state$$1, actions$$1) => h$1('nodeName', 'attributes', 'children')(
   ['main', { 
       class: 'flex flex-col w-full h-screen p-1 bg-grey-dark',
       oncreate: _ => {
@@ -3891,12 +3990,13 @@ const view$1 = (state, actions$$1) => h$1('nodeName', 'attributes', 'children')(
       }
 
     }, [
+      console.log(state$$1),
       ['div', { 
           class: 'flex-none w-full p-1'
         }, [
           Row({}, [
             ['button', {
-                onclick: event => actions$$1.updateLinks()
+                onclick: event => actions$$1.getLinks()
               }, 'Refresh Links'
             ],
           ]),
@@ -3905,13 +4005,13 @@ const view$1 = (state, actions$$1) => h$1('nodeName', 'attributes', 'children')(
       ['div', { 
           class: 'flex-1 w-full p-1 max-h-full overflow-y-auto'
         }, [
-          Tree({ tree: state.tree, selectedItem: state.selectedTreeItem }, actions$$1),
+          Tree({ tree: state$$1.tree, selectedItem: state$$1.selectedTreeItem, editingItem: state$$1.editingTreeItem, editingItemValue: state$$1.editingTreeItemValue }, actions$$1),
       ]],
   ]]
 );
 
 const main = app(state, actions, view$1, document.body);
 
-main.updateLinks();
+main.getLinks();
 
 module.exports = main;

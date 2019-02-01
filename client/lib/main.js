@@ -1,46 +1,27 @@
-import { evolve, mergeDeepRight, repeat } from 'ramda'
+import { curry, evolve, mergeDeepRight, repeat } from 'ramda'
 
 import { app } from "hyperapp"
 import { h } from "ijk"
 import cc from 'classcat'
 
-import { runScript } from './helpers/jsx'
-
 const fs = require('fs')
+const { COPYFILE_EXCL } = fs.constants
+
 const path = require('path')
 
-const state = {
-  list: [],
-  tree: [],
-  selectedTreeItem: {},
-  editingTreeItem: {},
-}
+const copyFileAsync = (src, dest, flags) => fs.copyFile(src, dest, (resolve, reject, flags) => { 
+  if (!err) {
+    resolve() 
+  } else { 
+    reject(err)
+  } 
+})
 
+
+import { state } from './state.js'
 import { actions } from './actions.js'
 
 const mergeNodeAttributes = (defaults, attributes) => evolve({ class: cc }, mergeDeepRight(defaults, attributes))
-
-const Row = (attrs, children) => 
-  [ 'div', 
-    mergeNodeAttributes({
-      class: { 'flex items-center h-10': true }
-    }, attrs)
-  , children ]
-
-const List = (list) => 
-  ['div', {
-    }, 
-    list.map(link => 
-      ['div', {
-        class: 'whitespace-no-wrap'
-      }, 
-      link.path.split(":").map(part => [
-        ['span', ['/']],
-        ['span', { class: 'whitespace-no-wrap' }, [part]],
-      ]) 
-    ])
-  ]
-
 
 function isAChildOfB(itemB, itemA) {
   return !(itemB.type === 'file' && itemA.type === 'file') && (itemA.parent + itemA.name).length > (itemB.parent + itemB.name).length && (itemA.parent + itemA.name).indexOf(itemB.parent + itemB.name) === 0
@@ -51,6 +32,14 @@ function isSameItem(itemB, itemA) {
     itemB.link.id === itemA.link.id :
     itemB.parent + itemB.name === itemA.parent + itemA.name
 }
+
+const Row = (attrs, children) => 
+  [ 'div', 
+    mergeNodeAttributes({
+      class: { 'flex items-center h-10': true }
+    }, attrs)
+  , children ]
+
 
 const TreeItem = ({ item, isSelected, isChildOfSelected, setSelected, setEditing }) => 
   Row({
@@ -86,31 +75,61 @@ const TreeItem = ({ item, isSelected, isChildOfSelected, setSelected, setEditing
   }, [
     repeat("  ", item.indent)
       .map(el => ['span', { class: 'pr-8' }]),
-    ['span', { 
+    ['span', 
+      { 
         class: cc({
           'whitespace-no-wrap': true,
           'font-bold': isSelected,
         }),
       }, 
       item.name
-    ],
+    ]
   ])
 
+const TreeItemInput = ({ item, isSelected, isChildOfSelected, isEditing, setEditing, setSelected, editingItemValue }) => 
+  Row({
+    class: {
+      'whitespace-no-wrap': true,
+      'bg-grey-darker': isSelected || isChildOfSelected,
+    },
+    onclick: () => {
+      setSelected()
+    },
+  }, [
+    console.log(editingItemValue),
+    ['input',
+      {
+        class: cc({
+          'text-black': true,
+        }),
+        value: editingItemValue,
+        oninput: e => actions.setNameInput(),
+      },
+      []
+    ]
+  ])
   
-const Tree = ({ tree, selectedItem }, actions) =>
+const Tree = ({ tree, selectedItem, editingItem, editingItemValue }, actions) =>
   ['div', {
       class: ''
     },
     tree.map((item, idx) => 
-      TreeItem({ 
-        item, 
-        isSelected: isSameItem(selectedItem, item), 
-        isChildOfSelected: isAChildOfB(selectedItem, item), 
-        isEditing: isSameItem(selectedItem, item), 
-        isChildOfEditing: isAChildOfB(selectedItem, item), 
-        setSelected: () => actions.setSelectedTreeItem(item),
-        setEditing: () => actions.setEditingTreeItem(item),
-      })
+      (!isSameItem(editingItem, item))
+        ? TreeItem({ 
+          item, 
+          isSelected: isSameItem(selectedItem, item), 
+          isChildOfSelected: isAChildOfB(selectedItem, item), 
+          isEditing: isSameItem(editingItem, item), 
+          setSelected: () => actions.setSelectedTreeItem(item),
+          setEditing: () => actions.setEditingTreeItem(item),
+        })
+        : TreeItemInput({
+          item, 
+          editingItemValue,
+          isEditing: isSameItem(editingItem, item), 
+          setSelected: () => actions.setSelectedTreeItem(item),
+          setEditing: () => actions.setEditingTreeItem(item),
+        })
       )
   ]
 
@@ -122,12 +141,13 @@ const view = (state, actions) => h('nodeName', 'attributes', 'children')(
       }
 
     }, [
+      console.log(state),
       ['div', { 
           class: 'flex-none w-full p-1'
         }, [
           Row({}, [
             ['button', {
-                onclick: event => actions.updateLinks()
+                onclick: event => actions.getLinks()
               }, 'Refresh Links'
             ],
           ]),
@@ -136,13 +156,13 @@ const view = (state, actions) => h('nodeName', 'attributes', 'children')(
       ['div', { 
           class: 'flex-1 w-full p-1 max-h-full overflow-y-auto'
         }, [
-          Tree({ tree: state.tree, selectedItem: state.selectedTreeItem }, actions),
+          Tree({ tree: state.tree, selectedItem: state.selectedTreeItem, editingItem: state.editingTreeItem, editingItemValue: state.editingTreeItemValue }, actions),
       ]],
   ]]
 )
 
 const main = app(state, actions, view, document.body)
 
-main.updateLinks()
+main.getLinks()
 
 module.exports = main;

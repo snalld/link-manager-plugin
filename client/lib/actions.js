@@ -1,31 +1,25 @@
-const merge = (...args) => Object.assign({}, ...args)
+import { map, mergeAll, zipObj } from 'ramda'
 
 import { runScript } from './helpers/jsx.js'
 
 export const actions = {
 
-    setList: list => state => {
-      return merge(state, { list })
-    },
+    setEditingItemValue: editingItemValue => state => mergeAll([state, { editingItemValue }]),
   
-    setTree: tree => state => {
-      return merge(state, { tree })
-    },
+    setLinks: links => state => mergeAll([state, { links: zipObj(map(l => l.id, links), links) }]),
   
-    setSelectedTreeItem: selectedTreeItem => state => {
-      return merge(state, { selectedTreeItem })
-    },
+    setTree: tree => state => mergeAll([state, { tree }]),
   
-    setEditingTreeItem: editingTreeItem => state => {
-      return merge(state, { editingTreeItem })
-    },
+    setSelectedTreeItem: selectedTreeItem => state => mergeAll([state, { selectedTreeItem }]),
   
-    updateLinks: _ => (state, actions) => {
+    setEditingTreeItem: editingTreeItem => state => mergeAll([state, { editingTreeItem }]),
+  
+    getLinks: _ => (state, actions) => {
       runScript(csInterface, 'getLinks.jsx')
         .then(res => {
           try {
             const links = JSON.parse(res).links
-            actions.setList(links)
+            actions.setLinks(links)
             actions.updateTree(links)
           } catch (error) {
             console.log(res)
@@ -54,9 +48,9 @@ export const actions = {
           }
 
           if (branch.type === 'file')
-            branch = merge(branch, { 
-              link 
-            })
+            branch = mergeAll([branch, { 
+              link: link.id
+            }])
           
           tree = [...tree, branch]
     
@@ -77,8 +71,6 @@ export const actions = {
           return - 1
   
       })
-
-      console.log(state);
       
   
       actions.setTree(tree)
