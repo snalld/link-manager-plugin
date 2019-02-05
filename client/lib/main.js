@@ -1,41 +1,29 @@
-import { curry, evolve, mergeDeepRight, repeat } from 'ramda'
+import { evolve, mergeDeepRight, repeat } from 'ramda'
 
 import { app } from "hyperapp"
 import { h } from "ijk"
 import cc from 'classcat'
 
-const fs = require('fs')
-const { COPYFILE_EXCL } = fs.constants
-
-const path = require('path')
-
-const copyFileAsync = (src, dest, flags) => fs.copyFile(src, dest, (resolve, reject, flags) => { 
-  if (!err) {
-    resolve() 
-  } else { 
-    reject(err)
-  } 
-})
-
-
 import { state } from './state.js'
 import { actions } from './actions.js'
 
-const mergeNodeAttributes = (defaults, attributes) => evolve({ class: cc }, mergeDeepRight(defaults, attributes))
+const mergeDOMNodeAttributes = (defaults, attributes) => evolve({ class: cc }, mergeDeepRight(defaults, attributes))
 
 function isAChildOfB(itemB, itemA) {
-  return !(itemB.type === 'file' && itemA.type === 'file') && (itemA.parent + itemA.name).length > (itemB.parent + itemB.name).length && (itemA.parent + itemA.name).indexOf(itemB.parent + itemB.name) === 0
+  return !(itemB.type === itemA.type === 'file') 
+    && (itemA.parent + itemA.name).length > (itemB.parent + itemB.name).length 
+    && (itemA.parent + itemA.name).indexOf(itemB.parent + itemB.name) === 0
 }
 
 function isSameItem(itemB, itemA) {
   return itemB.type === 'file' && itemA.type === 'file' ?
-    itemB.link.id === itemA.link.id :
+    itemB.link === itemA.link :
     itemB.parent + itemB.name === itemA.parent + itemA.name
 }
 
 const Row = (attrs, children) => 
   [ 'div', 
-    mergeNodeAttributes({
+    mergeDOMNodeAttributes({
       class: { 'flex items-center h-10': true }
     }, attrs)
   , children ]
