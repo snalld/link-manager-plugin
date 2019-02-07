@@ -31,6 +31,7 @@
     "classcat": "^3.2.5",
     "concurrently": "^3.5.1",
     "foreach-cli": "^1.8.0",
+    "fs-extra": "^7.0.1",
     "hyperapp": "^1.2.9",
     "ijk": "^0.24.0",
     "mathjs": "^5.0.0",

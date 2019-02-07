@@ -1,7 +1,7 @@
 function relink(source, path) {
 
     var link = eval(source)
-
+    alert(link.filePath)
     var doc = app.activeDocument
 
     try {

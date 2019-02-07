@@ -4,13 +4,10 @@ import {
   zipObj
 } from 'ramda'
 
-import {
-  runScript
-} from './helpers/jsx.js'
+import { runScript } from './helpers/jsx.js'
 
-import {
-  renameFile
-} from './actions/renameFile.js'
+import { renameLink } from './actions/renameLink.js'
+import { bumpLinkDate } from './actions/bumpLinkDate.js'
 
 export const actions = {
 
@@ -51,7 +48,7 @@ export const actions = {
 
     links.forEach(link => {
 
-      const parts = `${link.path}${link.page ? '###' + link.page : ''}`.split(':')
+      const parts = `${link.path}`.split(':')
       parts.reduce((a, val, idx) => {
         if (idx !== 0)
           a = a + '/'
@@ -61,6 +58,7 @@ export const actions = {
         let branch = {
           parent: a,
           name: val,
+          path: a + val,
           indent: idx,
           type: idx === parts.length - 1 ? 'file' : 'folder',
         }
@@ -93,5 +91,7 @@ export const actions = {
 
     actions.setTree(tree)
   },
+
+  bumpLinkDate,
 
 }

@@ -5,6 +5,6 @@ export const state = {
   selectedTreeItem: {},
   editingTreeItem: {},
 
-  editingItemTreeValue: 'testing path',
+  editingTreeItemValue: '',
 }
 
