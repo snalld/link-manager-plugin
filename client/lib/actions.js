@@ -32,7 +32,7 @@ export const actions = {
   }]),
 
   getLinks: () => (state, actions) => {
-    runScript(csInterface, 'getLinks.jsx').then(res => {
+    runScript(csInterface, 'getLinks').then(res => {
       try {
         const links = JSON.parse(res).links
         actions.setLinks(links)

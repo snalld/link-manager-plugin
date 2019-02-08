@@ -3786,7 +3786,23 @@ var zipObj = /*#__PURE__*/_curry2(function zipObj(keys, values) {
   return out;
 });
 
-const runScriptSync = (csInterface, name, argumentList, onDone) => csInterface.evalScript(`run('${name}', ${JSON.stringify(argumentList)})`, onDone);
+const EXTENSION_LOCATION = csInterface.getSystemPath(SystemPath.EXTENSION);
+
+const fs = require('fs-extra');
+const {
+    pathExists,
+} = fs;
+
+const runScriptSync = async (csInterface, name, argumentList, onDone) => {
+    const filepath = `${EXTENSION_LOCATION}/jsx/${name}.jsx`;
+    const exists = await pathExists(filepath);
+    if (!!exists) {
+        return csInterface.evalScript(`run('${name}', '${filepath}', ${JSON.stringify(argumentList)})`, onDone)
+    } else {
+        throw new Error('Cannot find: ' + filepath)
+    }
+};
+
 const runScript = async (csInterface, name, argumentList) => new Promise((resolve, reject) => runScriptSync(csInterface, name, argumentList, resolve));
 
 const promisify = require('util').promisify;
@@ -3796,11 +3812,11 @@ const {
 } = require('fs-extra');
 const path$1 = require('path');
 
-const fs = require('fs-extra');
+const fs$1 = require('fs-extra');
 const {
     copy,
-    pathExists,
-} = fs;
+    pathExists: pathExists$1,
+} = fs$1;
 
 const {
     parse
@@ -3829,7 +3845,7 @@ const bumpLinkDate = link => async (state, actions) => {
     const newName = `${newDate} ${nameWithoutDate}`;
     const newPath = `${dir}/${newName}${ext}`;
     
-    const exists = await pathExists(newPath);
+    const exists = await pathExists$1(newPath);
     
     if (!exists) {
         await copy(link.path, newPath);
@@ -3892,7 +3908,7 @@ const actions = {
   }]),
 
   getLinks: () => (state, actions) => {
-    runScript(csInterface, 'getLinks.jsx').then(res => {
+    runScript(csInterface, 'getLinks').then(res => {
       try {
         const links = JSON.parse(res).links;
         actions.setLinks(links);
