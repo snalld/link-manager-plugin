@@ -3853,9 +3853,9 @@ const bumpLinkDate = link => async (state, actions) => {
     let newName = '';
     let newPath = '';
 
-    if (date[0] !== newDate) {
+    if (!hasDate || date[0] !== newDate) {
 
-        nameWithoutDate = hasDate ? name.slice(6) : name;
+        nameWithoutDate = (!!hasDate) ? name.slice(6) : ` ${name}`;
         newName = `${newDate}${nameWithoutDate}`;
         newPath = `${dir}/${newName}${ext}`;
 
@@ -3868,7 +3868,7 @@ const bumpLinkDate = link => async (state, actions) => {
         }
     
         try {
-            // Rename for better legibility
+            // Rename `link` for better legibility
             const linkSource = state.links[link.link].source;
             const updatedLink = await runJSX('relink', [linkSource, newPath], true);
             actions.getLinks();
@@ -3879,26 +3879,6 @@ const bumpLinkDate = link => async (state, actions) => {
     }
 
 };
-
-// let filepath = item.link.path.split(':').join('/')
-
-// if (item.type === 'file') {
-//   let {
-//     dir,
-//     name,
-//     ext,
-//   } = path.parse(filepath)
-
-//   let newPath = `${dir}/${name} copy${ext}`
-
-//   fs.copy(filepath, newPath, (err) => {
-//     if (!err)
-//       runScript(csInterface, 'relink.jsx', [item.link.source, newPath])
-//         .then((res) => {
-//           console.log(res)
-//         })
-//   })
-// }
 
 const actions = {
 
