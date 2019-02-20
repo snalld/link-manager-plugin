@@ -1,5 +1,5 @@
 import {
-    runScript
+    runJSX
 } from '../helpers/jsx.js'
 
 const fs = require('fs-extra')
@@ -50,7 +50,7 @@ export const bumpLinkDate = link => async (state, actions) => {
         try {
             // Rename for better legibility
             const linkSource = state.links[link.link].source
-            const updatedLink = await runScript(csInterface, 'relink', [linkSource, newPath])
+            const updatedLink = await runJSX('relink', [linkSource, newPath], true)
             actions.getLinks()
             return updatedLink
         } catch (error) {

@@ -27,4 +27,4 @@ function getLinks(data) {
     })
 }
 
-exports = getLinks
+exports = getLinks;

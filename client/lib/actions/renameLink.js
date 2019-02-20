@@ -1,5 +1,5 @@
 import {
-    runScript
+    runJSX
 } from '../helpers/jsx.js'
 
 const promisify = require('util').promisify

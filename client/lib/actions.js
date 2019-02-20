@@ -4,7 +4,7 @@ import {
   zipObj
 } from 'ramda'
 
-import { runScript } from './helpers/jsx.js'
+import { runJSX } from './helpers/jsx.js'
 
 import { renameLink } from './actions/renameLink.js'
 import { bumpLinkDate } from './actions/bumpLinkDate.js'
@@ -32,7 +32,7 @@ export const actions = {
   }]),
 
   getLinks: () => (state, actions) => {
-    runScript(csInterface, 'getLinks').then(res => {
+    runJSX('getLinks').then(res => {
       try {
         const links = JSON.parse(res).links
         actions.setLinks(links)

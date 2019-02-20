@@ -1,5 +1,5 @@
 function testing(data) {
-    alert('dummy')
+    return data
 }
 
-exports = testing
+exports = testing;

@@ -3787,23 +3787,33 @@ var zipObj = /*#__PURE__*/_curry2(function zipObj(keys, values) {
 });
 
 const EXTENSION_LOCATION = csInterface.getSystemPath(SystemPath.EXTENSION);
+const HOST_APPLICATION = csInterface.getHostEnvironment().appId;
 
 const fs = require('fs-extra');
 const {
-    pathExists,
+    readFile,
 } = fs;
 
-const runScriptSync = async (csInterface, name, argumentList, onDone) => {
-    const filepath = `${EXTENSION_LOCATION}/jsx/${name}.jsx`;
-    const exists = await pathExists(filepath);
-    if (!!exists) {
-        return csInterface.evalScript(`run('${name}', '${filepath}', ${JSON.stringify(argumentList)})`, onDone)
-    } else {
-        throw new Error('Cannot find: ' + filepath)
+const runJSX = async (name, args, useIndesignHistory = false) => {
+    try {
+        const filepath = `${EXTENSION_LOCATION}/jsx/${name}.jsx`;
+        const fileContents = await readFile(filepath, 'utf8');
+        const script = `function(){\nvar exports;\n${fileContents}\nreturn exports.apply(null, ${JSON.stringify(args || [])})\n}`;
+        
+        let result;
+        
+        if (HOST_APPLICATION === 'IDSN' && !!useIndesignHistory) {
+            result = await new Promise((resolve, reject) => csInterface.evalScript(`app.doScript(${script}, ScriptLanguage.JAVASCRIPT, undefined, UndoModes.FAST_ENTIRE_SCRIPT, "${name}")` , resolve));
+        } else {
+            result = await new Promise((resolve, reject) => csInterface.evalScript(`(${script})()`, resolve));
+        }
+        
+        return result
+    } catch (error) {
+        console.error(error);
+        return error
     }
 };
-
-const runScript = async (csInterface, name, argumentList) => new Promise((resolve, reject) => runScriptSync(csInterface, name, argumentList, resolve));
 
 const promisify = require('util').promisify;
 
@@ -3815,7 +3825,7 @@ const path$1 = require('path');
 const fs$1 = require('fs-extra');
 const {
     copy,
-    pathExists: pathExists$1,
+    pathExists,
 } = fs$1;
 
 const {
@@ -3849,7 +3859,7 @@ const bumpLinkDate = link => async (state, actions) => {
         newName = `${newDate}${nameWithoutDate}`;
         newPath = `${dir}/${newName}${ext}`;
 
-        const exists = await pathExists$1(newPath);
+        const exists = await pathExists(newPath);
         
         if (!exists) {
             await copy(link.path, newPath);
@@ -3860,7 +3870,7 @@ const bumpLinkDate = link => async (state, actions) => {
         try {
             // Rename for better legibility
             const linkSource = state.links[link.link].source;
-            const updatedLink = await runScript(csInterface, 'relink', [linkSource, newPath]);
+            const updatedLink = await runJSX('relink', [linkSource, newPath], true);
             actions.getLinks();
             return updatedLink
         } catch (error) {
@@ -3913,7 +3923,7 @@ const actions = {
   }]),
 
   getLinks: () => (state, actions) => {
-    runScript(csInterface, 'getLinks').then(res => {
+    runJSX('getLinks').then(res => {
       try {
         const links = JSON.parse(res).links;
         actions.setLinks(links);
