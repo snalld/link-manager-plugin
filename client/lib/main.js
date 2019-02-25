@@ -5,8 +5,6 @@ import cc from 'classcat'
 import { state } from './state.js'
 import { actions } from './actions.js'
 
-
-
 function isAChildOfB(itemB, itemA) {
   return !(itemB.type === itemA.type === 'file') 
     && (itemA.parent + itemA.name).length > (itemB.parent + itemB.name).length 

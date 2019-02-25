@@ -4,6 +4,7 @@ import {
   zipObj
 } from 'ramda'
 
+
 import { runJSX } from './helpers/jsx.js'
 
 import { renameLink } from './actions/renameLink.js'
@@ -38,7 +39,7 @@ export const actions = {
         actions.setLinks(links)
         actions.updateTree(links)
       } catch (error) {
-        console.log(res)
+        console.log(error)
       }
     })
   },
@@ -47,6 +48,9 @@ export const actions = {
     let tree = []
 
     links.forEach(link => {
+
+      testThumbnail(link.path.split(':').join('/'))
+        .then(res => console.log(`Create thumbnail: ${res}`))
 
       const parts = `${link.path}`.split(':')
       parts.reduce((a, val, idx) => {
@@ -87,7 +91,6 @@ export const actions = {
         return -1
 
     })
-
 
     actions.setTree(tree)
   },
