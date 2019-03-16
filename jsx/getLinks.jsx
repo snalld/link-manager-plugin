@@ -12,6 +12,7 @@ function getLinks(data) {
             'path': srcLink.filePath,
             'name': srcLink.name,
             'id': srcLink.id,
+            'location': (srcLink.parent.parentPage || srcLink.parent.parent.parent.pages[0]).name,
             'source': srcLink.toSource(),
         }
 

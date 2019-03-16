@@ -89,7 +89,7 @@ const view = (state, actions) => h('nodeName', 'attributes', 'children')(
       ['div', { 
           class: 'flex-1 w-full p-1 max-h-full overflow-y-auto'
         }, [
-          Tree({ tree: state.tree, selectedItem: state.selectedTreeItem, editingItem: state.editingTreeItem, editingItemValue: state.editingTreeItemValue, }, actions),
+          Tree({ tree: state.browserItems || [], selectedItem: state.selectedTreeItem, editingItem: state.editingTreeItem, editingItemValue: state.editingTreeItemValue, }, actions),
       ]],
   ]]
 )

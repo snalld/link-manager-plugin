@@ -35,6 +35,7 @@
     "hyperapp": "^1.2.9",
     "ijk": "^0.24.0",
     "mathjs": "^5.0.0",
+    "partial.lenses": "^14.17.0",
     "postcss-cli": "^5.0.0",
     "postcss-import": "^11.1.0",
     "quicklook-thumbnail": "^1.0.0",

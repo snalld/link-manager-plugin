@@ -428,6 +428,7 @@ const state = {
   links: {},
 
   tree: [],
+  browserItems: [],
   selectedTreeItem: {},
   editingTreeItem: {},
 
@@ -2875,6 +2876,61 @@ var evolve = /*#__PURE__*/_curry2(function evolve(transformations, object) {
   return result;
 });
 
+var XFindLast = /*#__PURE__*/function () {
+  function XFindLast(f, xf) {
+    this.xf = xf;
+    this.f = f;
+  }
+  XFindLast.prototype['@@transducer/init'] = _xfBase.init;
+  XFindLast.prototype['@@transducer/result'] = function (result) {
+    return this.xf['@@transducer/result'](this.xf['@@transducer/step'](result, this.last));
+  };
+  XFindLast.prototype['@@transducer/step'] = function (result, input) {
+    if (this.f(input)) {
+      this.last = input;
+    }
+    return result;
+  };
+
+  return XFindLast;
+}();
+
+var _xfindLast = /*#__PURE__*/_curry2(function _xfindLast(f, xf) {
+  return new XFindLast(f, xf);
+});
+
+/**
+ * Returns the last element of the list which matches the predicate, or
+ * `undefined` if no element matches.
+ *
+ * Acts as a transducer if a transformer is given in list position.
+ *
+ * @func
+ * @memberOf R
+ * @since v0.1.1
+ * @category List
+ * @sig (a -> Boolean) -> [a] -> a | undefined
+ * @param {Function} fn The predicate function used to determine if the element is the
+ * desired one.
+ * @param {Array} list The array to consider.
+ * @return {Object} The element found, or `undefined`.
+ * @see R.transduce
+ * @example
+ *
+ *      const xs = [{a: 1, b: 0}, {a:1, b: 1}];
+ *      R.findLast(R.propEq('a', 1))(xs); //=> {a: 1, b: 1}
+ *      R.findLast(R.propEq('a', 4))(xs); //=> undefined
+ */
+var findLast = /*#__PURE__*/_curry2( /*#__PURE__*/_dispatchable([], _xfindLast, function findLast(fn, list) {
+  var idx = list.length - 1;
+  while (idx >= 0) {
+    if (fn(list[idx])) {
+      return list[idx];
+    }
+    idx -= 1;
+  }
+}));
+
 /**
  * Returns a new function much like the supplied one, except that the first two
  * arguments' order is reversed.
@@ -3522,6 +3578,35 @@ var useWith = /*#__PURE__*/_curry2(function useWith(fn, transformers) {
 var project = /*#__PURE__*/useWith(_map, [pickAll, identity]); // passing `identity` gives correct arity
 
 /**
+ * Returns `true` if the specified object property is equal, in
+ * [`R.equals`](#equals) terms, to the given value; `false` otherwise.
+ * You can test multiple properties with [`R.whereEq`](#whereEq).
+ *
+ * @func
+ * @memberOf R
+ * @since v0.1.0
+ * @category Relation
+ * @sig String -> a -> Object -> Boolean
+ * @param {String} name
+ * @param {*} val
+ * @param {*} obj
+ * @return {Boolean}
+ * @see R.whereEq, R.propSatisfies, R.equals
+ * @example
+ *
+ *      const abby = {name: 'Abby', age: 7, hair: 'blond'};
+ *      const fred = {name: 'Fred', age: 12, hair: 'brown'};
+ *      const rusty = {name: 'Rusty', age: 10, hair: 'brown'};
+ *      const alois = {name: 'Alois', age: 15, disposition: 'surly'};
+ *      const kids = [abby, fred, rusty, alois];
+ *      const hasBrownHair = R.propEq('hair', 'brown');
+ *      R.filter(hasBrownHair, kids); //=> [fred, rusty]
+ */
+var propEq = /*#__PURE__*/_curry3(function propEq(name, val, obj) {
+  return equals(val, obj[name]);
+});
+
+/**
  * Calls an input function `n` times, returning an array containing the results
  * of those function calls.
  *
@@ -3786,6 +3871,10 @@ var zipObj = /*#__PURE__*/_curry2(function zipObj(keys, values) {
   return out;
 });
 
+const pad$1 = (char, pad, int) => {
+    return Array(pad).fill(char).map((e, idx) => (idx < (int + '').length) ? (int + '').split('').reverse()[idx] : e).reverse().join('')
+};
+
 const EXTENSION_LOCATION = csInterface.getSystemPath(SystemPath.EXTENSION);
 const HOST_APPLICATION = csInterface.getHostEnvironment().appId;
 
@@ -3894,6 +3983,10 @@ const actions = {
     tree
   }]),
 
+  setBrowserItems: browserItems => state => mergeAll([state, {
+    browserItems
+  }]),
+
   setSelectedTreeItem: selectedTreeItem => state => mergeAll([state, {
     selectedTreeItem
   }]),
@@ -3905,7 +3998,9 @@ const actions = {
   getLinks: () => (state, actions) => {
     runJSX('getLinks').then(res => {
       try {
-        const links = JSON.parse(res).links;
+        const rawLinks = JSON.parse(res).links;
+        const links = rawLinks;
+
         actions.setLinks(links);
         actions.updateTree(links);
       } catch (error) {
@@ -3915,54 +4010,73 @@ const actions = {
   },
 
   updateTree: links => (state, actions) => {
-    let tree = [];
+    let browserItems = new Map();
 
     links.forEach(link => {
 
-      testThumbnail(link.path.split(':').join('/'))
-        .then(res => console.log(`Create thumbnail: ${res}`));
-
       const parts = `${link.path}`.split(':');
-      parts.reduce((a, val, idx) => {
-        if (idx !== 0)
-          a = a + '/';
+      parts.forEach((val, idx) => {
 
-        tree = tree.filter(el => !(el.parent === a && el.name === val && idx < parts.length - 1));
+        const path$$1 = [...parts.slice(0, idx), val];
+        const itemType = (idx !== parts.length - 1) 
+        ? 'folder'
+        : 'file'; 
+        
+        let key = null;
+        let id = null;
+        let name = path$$1[path$$1.length - 1];
+        let indent = idx;
+        let location = null;
 
-        let branch = {
-          parent: a,
-          name: val,
-          path: a + val,
-          indent: idx,
-          type: idx === parts.length - 1 ? 'file' : 'folder',
-        };
+        if (itemType === 'file') {
+          name = val;
+          location = pad$1(0, 3, link.location);
+          id = link.id;
 
-        if (branch.type === 'file')
-          branch = mergeAll([branch, {
-            link: link.id
-          }]);
+          // Add level for multiple instances
+          const groupKey = [...path$$1].join('/');
 
-        tree = [...tree, branch];
+          if (!browserItems.has(groupKey) && groupKey.indexOf(Array.from(browserItems.values()).reverse()[0].key)) {
+            browserItems.set(groupKey, {
+              key: groupKey,
+              name,
+              indent,
+              type: 'group', 
+            });
+          }
 
-        return a + val
-      }, '');
+        }
+
+        key = [...path$$1, location, id].filter(e => !!e).join('/');
+        
+        browserItems.set(key, {
+          key,
+          name,
+          indent: !findLast(propEq('indent', indent), Array.from(browserItems.values())) 
+            ? indent 
+            : indent + 1,
+          type: itemType,
+          location,
+        });
+
+      });
 
     });
 
-    tree = tree.sort((a, b) => {
-      let sa = `${a.parent}${a.name}`;
-      let sb = `${b.parent}${b.name}`;
+    const sortedBrowserItems = Array
+      .from(browserItems.values())
+      .sort((a, b) => {
+        const aKey = a.key;
+        const bKey = b.key;
 
-      if (sa === sb)
-        return 0
-      if (sa > sb)
-        return 1
-      else
-        return -1
+        return (aKey === bKey)
+          ? 0
+          : (aKey < bKey)
+            ? -1
+            : 1
+      });
 
-    });
-
-    actions.setTree(tree);
+    actions.setBrowserItems(sortedBrowserItems);
   },
 
   bumpLinkDate,
@@ -4091,7 +4205,7 @@ const view$1 = (state$$1, actions$$1) => h$1('nodeName', 'attributes', 'children
       ['div', { 
           class: 'flex-1 w-full p-1 max-h-full overflow-y-auto'
         }, [
-          Tree({ tree: state$$1.tree, selectedItem: state$$1.selectedTreeItem, editingItem: state$$1.editingTreeItem, editingItemValue: state$$1.editingTreeItemValue, }, actions$$1),
+          Tree({ tree: state$$1.browserItems || [], selectedItem: state$$1.selectedTreeItem, editingItem: state$$1.editingTreeItem, editingItemValue: state$$1.editingTreeItemValue, }, actions$$1),
       ]],
   ]]
 );

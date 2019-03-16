@@ -1,10 +1,12 @@
 import {
+  findLast,
   map,
   mergeAll,
+  propEq,
   zipObj
 } from 'ramda'
 
-
+import { pad } from "./helpers/strings.js";
 import { runJSX } from './helpers/jsx.js'
 
 import { renameLink } from './actions/renameLink.js'
@@ -24,6 +26,10 @@ export const actions = {
     tree
   }]),
 
+  setBrowserItems: browserItems => state => mergeAll([state, {
+    browserItems
+  }]),
+
   setSelectedTreeItem: selectedTreeItem => state => mergeAll([state, {
     selectedTreeItem
   }]),
@@ -35,7 +41,9 @@ export const actions = {
   getLinks: () => (state, actions) => {
     runJSX('getLinks').then(res => {
       try {
-        const links = JSON.parse(res).links
+        const rawLinks = JSON.parse(res).links
+        const links = rawLinks
+
         actions.setLinks(links)
         actions.updateTree(links)
       } catch (error) {
@@ -46,53 +54,73 @@ export const actions = {
 
   updateTree: links => (state, actions) => {
     let tree = []
+    let browserItems = new Map()
 
     links.forEach(link => {
 
-      testThumbnail(link.path.split(':').join('/'))
-        .then(res => console.log(`Create thumbnail: ${res}`))
-
       const parts = `${link.path}`.split(':')
-      parts.reduce((a, val, idx) => {
-        if (idx !== 0)
-          a = a + '/'
+      parts.forEach((val, idx) => {
 
-        tree = tree.filter(el => !(el.parent === a && el.name === val && idx < parts.length - 1))
+        const path = [...parts.slice(0, idx), val]
+        const itemType = (idx !== parts.length - 1) 
+        ? 'folder'
+        : 'file' 
+        
+        let key = null
+        let id = null
+        let name = path[path.length - 1]
+        let indent = idx
+        let location = null
 
-        let branch = {
-          parent: a,
-          name: val,
-          path: a + val,
-          indent: idx,
-          type: idx === parts.length - 1 ? 'file' : 'folder',
+        if (itemType === 'file') {
+          name = val
+          location = pad(0, 3, link.location)
+          id = link.id
+
+          // Add level for multiple instances
+          const groupKey = [...path].join('/')
+
+          if (!browserItems.has(groupKey) && groupKey.indexOf(Array.from(browserItems.values()).reverse()[0].key)) {
+            browserItems.set(groupKey, {
+              key: groupKey,
+              name,
+              indent,
+              type: 'group', 
+            })
+          }
+
         }
 
-        if (branch.type === 'file')
-          branch = mergeAll([branch, {
-            link: link.id
-          }])
+        key = [...path, location, id].filter(e => !!e).join('/')
+        
+        browserItems.set(key, {
+          key,
+          name,
+          indent: !findLast(propEq('indent', indent), Array.from(browserItems.values())) 
+            ? indent 
+            : indent + 1,
+          type: itemType,
+          location,
+        })
 
-        tree = [...tree, branch]
-
-        return a + val
-      }, '')
-
-    })
-
-    tree = tree.sort((a, b) => {
-      let sa = `${a.parent}${a.name}`
-      let sb = `${b.parent}${b.name}`
-
-      if (sa === sb)
-        return 0
-      if (sa > sb)
-        return 1
-      else
-        return -1
+      })
 
     })
 
-    actions.setTree(tree)
+    const sortedBrowserItems = Array
+      .from(browserItems.values())
+      .sort((a, b) => {
+        const aKey = a.key
+        const bKey = b.key
+
+        return (aKey === bKey)
+          ? 0
+          : (aKey < bKey)
+            ? -1
+            : 1
+      })
+
+    actions.setBrowserItems(sortedBrowserItems)
   },
 
   bumpLinkDate,

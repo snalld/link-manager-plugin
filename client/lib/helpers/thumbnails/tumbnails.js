@@ -5,19 +5,20 @@ const {
     pathExists
 } = require('fs-extra')
 
-
-const THUMBNAIL_DIR = 'Users⁩/daniel⁩/Library⁩/Application Support⁩/Adobe⁩/com.linkmanager⁩'
+const EXTENSION_LOCATION = csInterface.getSystemPath(SystemPath.EXTENSION)
+const THUMBNAIL_DIR = `${EXTENSION_LOCATION}/client/thumbs`
 const THUMBNAIL_EXT = '.png'
+const SEPARATOR = '$'
 
 // Modifiy to create thumbnails in appsupport folder or similar
-const createThumbnail = path => new Promise(resolve => createThumbnailSync(path, { size: 256, folder: THUMBNAIL_DIR }, (err, result) => {
+export const createThumbnail = path => new Promise(resolve => createThumbnailSync(path, { size: 256, folder: THUMBNAIL_DIR }, (err, result) => {
     if (err) throw (err);
     resolve(result)
 }))
 
-const ensureThumbnail = async filePath => {
+export const ensureThumbnail = async filePath => {
     const fileName = path.parse(filePath).name
-    const thumbPath = `${THUMBNAIL_DIR}/${fileName}${THUMBNAIL_EXT}`
+    const thumbPath = `${THUMBNAIL_DIR}/${filePath.split('/').join(SEPARATOR)}${THUMBNAIL_EXT}`
     const thumbExists = await pathExists()
 
     return (!thumbExists)
