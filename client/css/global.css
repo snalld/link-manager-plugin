@@ -4,5 +4,5 @@ html {
 
 * {
     font-family: 'FiraSans';
-    @apply .text-white .font-normal
+    /* @apply .text-white .font-normal */
 }

@@ -2,10 +2,7 @@
 const EXTENSION_LOCATION = csInterface.getSystemPath(SystemPath.EXTENSION)
 const HOST_APPLICATION = csInterface.getHostEnvironment().appId
 
-const fs = require('fs-extra')
-const {
-    readFile,
-} = fs
+import { readFile } from 'fs-extra'
 
 export const runJSX = async (name, args, useIndesignHistory = false) => {
     try {

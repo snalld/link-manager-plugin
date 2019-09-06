@@ -1,1 +1,1 @@
-const panel = require(`${__dirname}/client/main.js`)
+const panel = require(`${__dirname}/client/dist/main.js`)
