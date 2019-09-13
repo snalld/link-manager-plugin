@@ -1,23 +1,36 @@
-import { h } from "hyperapp"
-import cc from "classcat"
-import { BrowserItemIndent } from "./BrowserItemIndent"
+import { h } from "hyperapp";
+import cc from "classcat";
+import { BrowserItemIndent } from "./BrowserItemIndent";
 
 export const BrowserItem = (
   {
-    content,
+    value,
     indent,
+    type,
     collapsable = true,
+    status,
+    isSelected,
     isCollapsed,
     isHidden,
     isEditing,
     setCollapsed = () => {},
-    setEditing = () => {}
+    setEditing = () => {},
+    setSelected
   },
   children
 ) => (
-  <div class={cc(["item", { hidden: isHidden }])}>
+  <div
+    class={cc([
+      "item",
+      type,
+      {
+        selected: isSelected,
+        hidden: isHidden
+      }
+    ])}
+  >
     {!!collapsable && (
-      <div>
+      <div class="button--small">
         {!isCollapsed ? (
           <p onclick={() => setCollapsed(true)}>-</p>
         ) : (
@@ -26,11 +39,17 @@ export const BrowserItem = (
       </div>
     )}
     <BrowserItemIndent level={indent} />
-    {!isEditing ?
-      <div class="item__content" ondblclick={setEditing}>
-      <p>{content}</p>
-    </div> :
-    <div><input type="text" value={content}/></div>
-    }
+    {!isEditing ? (
+      <div
+        class={cc(["item__content", `status-${status}`])}
+        ondblclick={setEditing}
+      >
+        <p>{value}</p>
+      </div>
+    ) : (
+      <div>
+        <input type="text" value={value} />
+      </div>
+    )}
   </div>
-)
+);

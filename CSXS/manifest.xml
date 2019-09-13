@@ -1,17 +1,18 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<ExtensionManifest ExtensionBundleId="com.linkmanager" ExtensionBundleVersion="1.0.0" Version="7.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ExtensionManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ExtensionBundleId="com.linkmanager" ExtensionBundleVersion="1.0" Version="6.0">  <!-- MAJOR-VERSION-UPDATE-MARKER -->
   <ExtensionList>
-    <Extension Id="com.linkmanager.panel" Version="1.0.0"/>
+    <Extension Id="com.linkmanager.panel" Version="6.1.0"/>
   </ExtensionList>
   <ExecutionEnvironment>
     <HostList>
-      <Host Name="IDSN" Version="13.1"/>
+      <Host Name="IDSN" Version="11.0"/>
     </HostList>
     <LocaleList>
-      <Locale Code="All" />
+      <Locale Code="All"/>
     </LocaleList>
     <RequiredRuntimeList>
-      <RequiredRuntime Name="CSXS" Version="7.0" />
+      <RequiredRuntime Name="CSXS" Version="9.0"/>
+      <!-- MAJOR-VERSION-UPDATE-MARKER -->
     </RequiredRuntimeList>
   </ExecutionEnvironment>
   <DispatchInfoList>
@@ -20,25 +21,30 @@
         <Resources>
           <MainPath>./client/index.html</MainPath>
           <ScriptPath>./host/index.jsx</ScriptPath>
-          <CEFCommandLine> 
-            <Parameter>--enable-nodejs</Parameter> 
+          <CEFCommandLine>
+            <Parameter>--enable-nodejs</Parameter>
             <Parameter>--mixed-context</Parameter>
           </CEFCommandLine>
         </Resources>
         <Lifecycle>
           <AutoVisible>true</AutoVisible>
-          <StartOn>
-            <Event>com.linkmanager.focus</Event>
-          </StartOn>
         </Lifecycle>
         <UI>
           <Type>Panel</Type>
           <Menu>Link Manager</Menu>
           <Geometry>
             <Size>
+              <Height>580</Height>
+              <Width>1020</Width>
+            </Size>
+            <MaxSize>
+              <Height>800</Height>
+              <Width>1200</Width>
+            </MaxSize>
+            <MinSize>
               <Height>400</Height>
               <Width>600</Width>
-            </Size>
+            </MinSize>
           </Geometry>
           <Icons>
             <Icon Type="Normal">./host/icons/IconDark.png</Icon>

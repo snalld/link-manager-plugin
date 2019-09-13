@@ -1,80 +1,112 @@
-html, body {
-    margin: 0;
-    padding: 0;
+:root {
+  --black: rgb(50, 50, 50);
+  --grey-darkest: #383838;
+  --grey-darker: #454545;
+  --grey-dark: rgb(83, 83, 83);
+  --grey: #737373;
+  --grey-light: #c3c3c3;
+  --grey-lighter: #d1d1d1;
+  --grey-lightest: #f0f0f0;
+  --white: #ffffff;
 
-    font-family: monospace;
+  --blue: #4ba2f2;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+
+  font-family: monospace;
 }
 
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
-
 main {
-    width: 100%;
-    background-color: #fff;
+  width: 100%;
+  background-color: #fff;
 }
 
 .browser {
 }
 
 .item {
-    display: flex;
-    flex-direction: row;
-    align-content: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .item.hidden {
-    display: none;
+  display: none;
+}
+
+.item.selected {
+  background-color: var(--blue);
 }
 
 .item__indent {
-    display: inline-block;
-    width: 20px;
-    height: 0;
+  display: inline-block;
+  width: 20px;
+  height: 0;
 }
 
 .item__content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-    height: 23px;
-    min-width: 23px;
+  height: 23px;
+  min-width: 23px;
 
-    margin: 0;
-    padding: 0 4px 0 4px;
-    background-color: #eee;
+  margin: 0;
+  padding: 0 4px 0 4px;
+}
+
+.item__content.status-updated {
+    color: goldenrod;
+}
+
+.item__content.status-missing {
+    color: firebrick;
+}
+
+.group {
+    color: green;
 }
 
 .item__content > * {
-    margin: 0;
-    padding: 0;
-    line-height: 1;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
 }
 
 .input {
-    height: 12px;
+  height: 12px;
 }
 
-
 .button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    height: 23px;
-    min-width: 23px;
+  height: 23px;
+  min-width: 23px;
 
-    border: 0;
-    padding: 0 4px 0 4px;
+  border: 0;
+  padding: 0 4px 0 4px;
 
-    line-height: 1;
+  line-height: 1;
 
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .button--small {
-    height: 12px;
-    min-width: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 12px;
+  min-width: 12px;
+  /* border: 1px solid black; */
 }
