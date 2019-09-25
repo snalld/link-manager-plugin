@@ -14,8 +14,10 @@ export const BrowserItem = (
     isHidden,
     isEditing,
     setCollapsed = () => {},
-    setEditing = () => {},
-    setSelected
+    // setEditing = () => {},
+    setSelected = () => {},
+    onLoad = () => {},
+    onDoubleClick = () => {},
   },
   children
 ) => (
@@ -29,6 +31,7 @@ export const BrowserItem = (
       }
     ])}
   >
+    { onLoad() }
     {!!collapsable && (
       <div class="button--small">
         {!isCollapsed ? (
@@ -42,7 +45,8 @@ export const BrowserItem = (
     {!isEditing ? (
       <div
         class={cc(["item__content", `status-${status}`])}
-        ondblclick={setEditing}
+        // ondblclick={setEditing}
+        ondblclick={onDoubleClick}
       >
         <p>{value}</p>
       </div>

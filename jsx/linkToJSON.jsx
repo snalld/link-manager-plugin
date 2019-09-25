@@ -1,27 +1,11 @@
-function relink(source, path) {
-  var link = eval(source);
-
-  try {
-    var f = new File(path);
-    link.relink(f);
-    return linkToJSON(link);
-  } catch (e) {
-    return (
-      "Error: Could not relink " +
-      link.filePath.split(":").join("/") +
-      " to " +
-      path
-    );
-  }
-}
-
 function linkToJSON(link) {
   var object = {
     path: link.filePath,
     name: link.name,
     id: link.id,
-    location: (link.parent.parentPage || link.parent.parent.parent.pages[0])
-      .name,
+    location: (
+      link.parent.parentPage || link.parent.parent.parent.pages[0]
+    ).name,
     source: link.toSource(),
     status: (function(status) {
       if (status === LinkStatus.LINK_MISSING) return "MISSING";
@@ -39,4 +23,4 @@ function linkToJSON(link) {
   return JSON.stringify(object);
 }
 
-exports = relink;
+exports = linkToJSON;

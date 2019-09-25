@@ -1,16 +1,18 @@
 
+const fs = eval('require("fs")');
+import { promisify } from "util";
+const access = promisify(fs.access);
+
 const EXTENSION_LOCATION = csInterface.getSystemPath(SystemPath.EXTENSION)
 const HOST_APPLICATION = csInterface.getHostEnvironment().appId
-
-import { promisify } from 'util'
-const readFile = promisify(window.cep.fs.readFile)
-
 
 export const runJSX = async (name, args, useIndesignHistory = false) => {
     try {
         const filepath = `${EXTENSION_LOCATION}/jsx/${name}.jsx`
+        await access(filepath, fs.constants.F_OK)
+
         const fileContents = await window.cep.fs.readFile(filepath).data
-        const script = `function(){\nvar exports;\n${fileContents}\nreturn exports.apply(null, ${JSON.stringify(args || [])})\n}`
+        const script = `function(){\nvar exports;\n${fileContents}\nreturn exports.apply(null, ${JSON.stringify(await Promise.all(args || []))})\n}`
         
         let result
         
